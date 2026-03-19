@@ -54,12 +54,14 @@ class Board:
         self.squares[final[0]][final[1]].piece = self.squares[initial[0]][initial[1]].piece
         self.squares[initial[0]][initial[1]].piece = None
 
-        if move.attacked_piece:
-            attacked_row, attacked_col = move.attacked_piece
-            self.squares[attacked_row][attacked_col].piece = None
+        if move.attacked_pieces:
+            for attacked_piece in move.attacked_pieces:
+                attacked_row, attacked_col = attacked_piece
+                self.squares[attacked_row][attacked_col].piece = None
 
         if (final[0] == 0 or final[0] == 7) and self.squares[final[0]][final[1]].piece.name != 'queen':
             self.squares[final[0]][final[1]].piece = Queen(self.squares[final[0]][final[1]].piece.color)
+
 
     def all_available_moves(self, color):
 
@@ -70,12 +72,12 @@ class Board:
             for col in range(COLS):
                 if self.squares[row][col] != 0 and self.squares[row][col].has_piece() and self.squares[row][col].piece.color == color:
                     piece = self.squares[row][col].piece
-                    possible_moves = piece.possible_moves(self)
+                    possible_moves = piece.possible_moves(self, (row, col))
                     moves.extend(possible_moves)
 
         # if there are any moves that attack an opponent piece, return only those moves
-        if any(move.attacked_piece is not None for move in moves):
-            moves = list(filter(lambda x: x.attacked_piece is not None, moves))
+        if any(move.attacked_pieces is not None for move in moves):
+            moves = list(filter(lambda x: x.attacked_pieces is not None, moves))
 
         return moves
 
@@ -91,14 +93,9 @@ class Board:
                     else:
                         red += 1
         if white == 0:
-            print('Red wins')
-            pygame.quit()
-            quit()
+            return 'red'
         elif red == 0:
-            print('White wins')
-            pygame.quit()
-            quit()
+            return 'white'
         elif not self.all_available_moves(turn):
-            print("tie")
-            pygame.quit()
-            quit()
+            return 'tie'
+        return None
